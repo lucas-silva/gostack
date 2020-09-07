@@ -21,6 +21,8 @@ import AuthProviderMiddleware from './app/middlewares/authProvider';
 const routes = new Router();
 const upload = new Multer(MulterConfig);
 
+routes.get('/', (req, res) => res.send('ok'));
+
 routes.post('/session', SessionController.store);
 
 routes.post('/users', UserController.store);
