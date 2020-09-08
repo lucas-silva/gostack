@@ -15,6 +15,11 @@ import ScheduleController from './app/controllers/ScheduleController';
 import NotificationController from './app/controllers/NotificationController';
 import AvailableController from './app/controllers/AvailableController';
 
+import validateUserStore from './app/validators/UserStore';
+import validateUserUpdate from './app/validators/UserUpdate';
+import validateSessionStore from './app/validators/SessionStore';
+import validateAppointmentStore from './app/validators/AppointmentStore';
+
 import AuthMiddleware from './app/middlewares/auth';
 import AuthProviderMiddleware from './app/middlewares/authProvider';
 
@@ -23,10 +28,10 @@ const upload = new Multer(MulterConfig);
 
 routes.get('/', (req, res) => res.send('ok'));
 
-routes.post('/session', SessionController.store);
+routes.post('/session', validateSessionStore, SessionController.store);
 
-routes.post('/users', UserController.store);
-routes.put('/users', AuthMiddleware, UserController.update);
+routes.post('/users', validateUserStore, UserController.store);
+routes.put('/users', validateUserUpdate, AuthMiddleware, UserController.update);
 
 routes.get('/recipients', AuthProviderMiddleware, RecipientController.index);
 routes.get('/recipients/:id', AuthProviderMiddleware, RecipientController.show);
@@ -47,7 +52,12 @@ routes.post('/files', upload.single('file'), FileController.store);
 routes.get('/providers', AuthMiddleware, ProviderController.index);
 
 routes.get('/appointments', AuthMiddleware, AppointmentController.index);
-routes.post('/appointments', AuthMiddleware, AppointmentController.store);
+routes.post(
+  '/appointments',
+  validateAppointmentStore,
+  AuthMiddleware,
+  AppointmentController.store
+);
 routes.delete(
   '/appointments/:id',
   AuthMiddleware,
