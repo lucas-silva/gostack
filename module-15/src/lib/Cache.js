@@ -22,6 +22,18 @@ class Cache {
   invalidate(key) {
     return this.redis.del(key);
   }
+
+  async invalidatePrefix(prefix) {
+    const keys = await this.redis.keys(
+      `${process.env.REDIS_PREFIX}${prefix}:*`
+    );
+
+    const keysWithoutPrefix = keys.map((k) =>
+      k.replace(process.env.REDIS_PREFIX, '')
+    );
+
+    return this.redis.del(keysWithoutPrefix);
+  }
 }
 
 export default new Cache();
