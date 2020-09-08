@@ -1,4 +1,5 @@
 import { subHours } from 'date-fns';
+
 import User from '../models/User';
 import Appointment from '../models/Appointment';
 
