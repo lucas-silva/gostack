@@ -46,6 +46,8 @@ class CancelAppointmentService {
     await appointment.save();
 
     await Queue.add(CancellationMail.key, { appointment });
+
+    return appointment;
   }
 }
 
