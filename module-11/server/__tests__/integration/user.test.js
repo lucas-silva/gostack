@@ -1,6 +1,7 @@
 import request from 'supertest';
+import bcrypt from 'bcryptjs';
 import app from '../../src/app';
-
+import User from '../../src/app/models/User';
 import truncate from '../util/truncate';
 
 describe('User', () => {
@@ -40,5 +41,17 @@ describe('User', () => {
       });
 
     expect(responseB.status).toBe(400);
+  });
+
+  it('should encrypt user password when new user created', async () => {
+    const user = await User.create({
+      name: 'tester boy',
+      email: 'tester@boy.com',
+      password: '1234',
+    });
+
+    const compareHash = await bcrypt.compare('1234', user.password_hash);
+
+    expect(compareHash).toBe(true);
   });
 });
