@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import * as Sentry from '@sentry/node';
 import path from 'path';
 import express from 'express';
+import cors from 'cors';
 import redis from 'redis';
 import RateLimit from 'express-rate-limit';
 import RateLimitRedis from 'rate-limit-redis';
@@ -24,6 +25,11 @@ class App {
 
   middlewares() {
     Sentry.init(sentryConfig);
+    this.server.use(
+      cors({
+        origin: 'http://yoursite.com',
+      })
+    );
     this.server.use(Sentry.Handlers.requestHandler());
     this.server.use(helmet());
     this.server.use(express.json());
