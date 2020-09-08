@@ -1,14 +1,4 @@
-import { Op } from 'sequelize';
-import {
-  startOfDay,
-  endOfDay,
-  setHours,
-  setMinutes,
-  setSeconds,
-  format,
-  isAfter,
-} from 'date-fns';
-import Appointment from '../models/Appointment';
+import AvailableScheduleService from '../services/AvailableScheduleService';
 
 class AvailableController {
   async index(req, res) {
@@ -20,52 +10,9 @@ class AvailableController {
 
     const searchDate = Number(date);
 
-    const min = startOfDay(searchDate);
-    const max = endOfDay(searchDate);
-
-    const appointments = await Appointment.findAll({
-      where: {
-        provider_id: req.params.providerId,
-        cancelled_at: null,
-        date: {
-          [Op.between]: [min, max],
-        },
-      },
-    });
-
-    const schedule = [
-      '08:00',
-      '09:00',
-      '10:00',
-      '11:00',
-      '12:00',
-      '13:00',
-      '14:00',
-      '15:00',
-      '16:00',
-      '17:00',
-      '18:00',
-      '19:00',
-      '20:00',
-      '21:00',
-      '22:00',
-      '23:00',
-    ];
-
-    const available = schedule.map((time) => {
-      const [hour, minute] = time.split(':');
-      const value = setSeconds(
-        setMinutes(setHours(searchDate, hour), minute),
-        0
-      );
-
-      return {
-        time,
-        value: format(value, "yyyy-MM-dd'T'HH:mm:ssxxx"),
-        available:
-          isAfter(value, new Date()) &&
-          !appointments.find((x) => format(x.date, 'HH:mm') === time),
-      };
+    const available = await AvailableScheduleService.run({
+      searchDate,
+      provider_id: req.params.providerId,
     });
 
     return res.json(available);
