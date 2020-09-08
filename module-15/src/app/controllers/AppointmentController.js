@@ -1,9 +1,10 @@
-import pt from 'date-fns/locale/pt';
-import { startOfHour, parseISO, isBefore, format, subHours } from 'date-fns';
+import { subHours } from 'date-fns';
+
 import Appointment from '../models/Appointment';
+
 import User from '../models/User';
 import File from '../models/File';
-import Notification from '../schemas/Notification';
+import CreateAppointmentService from '../services/CreateAppointmentService';
 
 import CancellationMail from '../jobs/CancellationMail';
 import Queue from '../../lib/Queue';
@@ -41,49 +42,9 @@ class AppointmentController {
   }
 
   async store(req, res) {
-    const { provider_id, date } = req.body;
+    const data = { ...req.body, user_id: req.userId };
 
-    const provider = await User.findOne({
-      where: { id: provider_id, provider: true },
-    });
-
-    if (!provider) {
-      return res
-        .status(400)
-        .json({ error: 'You can only create appointments with providers' });
-    }
-
-    const hourStart = startOfHour(parseISO(date));
-
-    if (isBefore(hourStart, new Date())) {
-      return res.status(400).json({ error: 'Past dates are not allowed' });
-    }
-
-    const appointmentInSameTime = await Appointment.findOne({
-      where: {
-        provider_id,
-        cancelled_at: null,
-        date: hourStart,
-      },
-    });
-
-    if (appointmentInSameTime) {
-      return res
-        .status(400)
-        .json({ error: 'Appointment date is not available' });
-    }
-
-    const data = { ...req.body, date: hourStart, user_id: req.userId };
-    const appointment = await Appointment.create(data);
-
-    const currentUser = await User.findByPk(req.userId);
-    const formattedDate = format(hourStart, "'dia' dd 'de' MMMM 'às' H:mm'h'", {
-      locale: pt,
-    });
-    await Notification.create({
-      content: `Novo agendamento de ${currentUser.name} para ${formattedDate}`,
-      user: provider_id,
-    });
+    const appointment = await CreateAppointmentService.run(data);
 
     return res.json(appointment);
   }
