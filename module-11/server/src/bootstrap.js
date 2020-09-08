@@ -1,3 +1,5 @@
 const dotenv = require('dotenv');
 
-dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
+const env = process.env.NODE_ENV.trim();
+const path = env === 'test' ? '.env.test' : '.env';
+dotenv.config({ path });
